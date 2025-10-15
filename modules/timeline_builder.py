@@ -1,33 +1,41 @@
 from datetime import datetime
 from typing import List, Dict
 
-def _event_key(e):
-    if e["date"] is None:
-        return (datetime.max, e["text"][:60].lower())
-    return (e["date"], e["text"][:60].lower())
+def _sort_key(e):
+    """
+    Sort by full date first, then by year,
+    undated events go last.
+    """
+    if e.get("date"):
+        return (0, e["date"])
+    if e.get("year"):
+        return (1, datetime(e["year"], 1, 1))
+    return (2, datetime.max)
 
 def dedupe_events(events: List[Dict]):
+    """Remove duplicate events by text + date/year."""
     seen = set()
-    out = []
+    unique = []
     for e in events:
-        key = (e["date"].date() if e["date"] else None, e["text"].lower())
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append(e)
-    return out
+        key = (e.get("date") or e.get("year"), e["text"].strip().lower())
+        if key not in seen:
+            seen.add(key)
+            unique.append(e)
+    return unique
 
 def build_timeline(events: List[Dict]):
+    """Return clean sorted timeline."""
     events = dedupe_events(events)
-    events.sort(key=_event_key)
-    return events
+    return sorted(events, key=_sort_key)
 
 def to_export_rows(events: List[Dict]):
-    rows = []
+    """Format export rows for JSON/CSV output."""
+    formatted = []
     for e in events:
-        rows.append({
-            "date": (e["date"].strftime("%Y-%m-%d") if e["date"] else None),
+        formatted.append({
+            "date": e["date"].strftime("%Y-%m-%d") if e.get("date") else None,
+            "year": e.get("year"),
             "event": e["text"],
-            "matched_phrase": e.get("surface"),
+            "matched_phrase": e.get("surface")
         })
-    return rows
+    return formatted
