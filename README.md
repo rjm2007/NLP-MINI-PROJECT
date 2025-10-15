@@ -9,7 +9,6 @@ Extraction of chronological timelines from news articles. The tool processes art
   - **List Mode**: For articles with numbered/bulleted lists
   - **Normal Mode**: For standard news articles with flowing text
 - **Smart Event Detection**: Uses NLP to identify and cluster related events
-- **Year-Only Support**: Handles events with only year information
 - **Timeline Deduplication**: Removes duplicate events automatically
 - **Clean Output**: Summarizes events into concise, readable entries
 
